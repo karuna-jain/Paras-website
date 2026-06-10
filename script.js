@@ -1,6 +1,20 @@
 const init = () => {
+  // --- Enable JS-based styling ---
+  document.body.classList.add('js-enabled');
+
+  // --- Smart Part Search Elements (needed early by translation engine) ---
+  const searchInput = document.getElementById('partsSearchInput');
+  const searchFeedbackText = document.getElementById('searchFeedbackText');
+  const searchWhatsAppBtn = document.getElementById('searchWhatsAppBtn');
+  const searchFeedbackCard = document.getElementById('searchFeedbackCard');
+
   // --- Translation / Localization Engine ---
-  let currentLang = localStorage.getItem('paras_lang') || 'en';
+  let currentLang = 'en';
+  try {
+    currentLang = localStorage.getItem('paras_lang') || 'en';
+  } catch (e) {
+    console.warn('localStorage not accessible', e);
+  }
 
   const formFeedbackMessages = {
     en: {
@@ -14,6 +28,19 @@ const init = () => {
       phone: 'कृपया एक सही फ़ोन नंबर दर्ज करें।',
       sending: 'पूछताछ भेजी जा रही है...',
       success: 'हमसे संपर्क करने के लिए धन्यवाद! हम जल्द ही आपसे संपर्क करेंगे।',
+    }
+  };
+
+  const searchFeedbackMessages = {
+    en: {
+      default: 'Looking for something specific? Type to check or ask directly.',
+      typing: 'Check availability for "{query}" on WhatsApp instantly!',
+      btnText: 'Ask on WhatsApp'
+    },
+    hi: {
+      default: 'कुछ विशेष ढूंढ रहे हैं? टाइप करें या सीधे हमसे पूछें।',
+      typing: 'व्हाट्सएप पर तुरंत "{query}" की उपलब्धता के बारे में पूछें!',
+      btnText: 'व्हाट्सएप पर पूछें'
     }
   };
 
@@ -48,7 +75,14 @@ const init = () => {
     });
 
     currentLang = lang;
-    localStorage.setItem('paras_lang', lang);
+    try {
+      localStorage.setItem('paras_lang', lang);
+    } catch (e) {
+      console.warn('localStorage not accessible', e);
+    }
+
+    // Update dynamic search feedback text if search input is being used
+    updateSearchFeedback();
   }
 
   // Bind Event Listeners to Toggle Buttons
@@ -74,6 +108,7 @@ const init = () => {
     }
   });
 
+
   // --- Mobile Drawer Menu Navigation ---
   const toggleBtn = document.querySelector('.nav-toggle');
   const closeBtn = document.querySelector('.mobile-menu-close');
@@ -93,13 +128,14 @@ const init = () => {
     document.body.style.overflow = '';
   }
 
-  toggleBtn.addEventListener('click', openMenu);
-  closeBtn.addEventListener('click', closeMenu);
-  backdrop.addEventListener('click', closeMenu);
+  if (toggleBtn) toggleBtn.addEventListener('click', openMenu);
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+  if (backdrop) backdrop.addEventListener('click', closeMenu);
 
   mobileLinks.forEach(link => {
     link.addEventListener('click', closeMenu);
   });
+
 
   // --- Smooth Scroll Spy & Active Nav Class ---
   const sections = document.querySelectorAll('section[id]');
@@ -125,23 +161,103 @@ const init = () => {
     });
   });
 
+
   // --- Scroll Reveal Animations ---
   const revealElements = document.querySelectorAll('.reveal');
-  const revealObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('active');
-        observer.unobserve(entry.target);
-      }
+  if ('IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.01,
+      rootMargin: '0px 0px 50px 0px'
     });
-  }, {
-    threshold: 0.15,
-    rootMargin: '0px 0px -50px 0px'
-  });
 
-  revealElements.forEach(el => {
-    revealObserver.observe(el);
-  });
+    revealElements.forEach(el => {
+      revealObserver.observe(el);
+    });
+  } else {
+    revealElements.forEach(el => {
+      el.classList.add('active');
+    });
+  }
+
+
+  // --- Animated Stats Counter ---
+  const statNumbers = document.querySelectorAll('.counter-value');
+  let statsAnimated = false;
+
+  const animateCounters = () => {
+    statNumbers.forEach(stat => {
+      const target = parseInt(stat.getAttribute('data-target'), 10);
+      const suffix = stat.getAttribute('data-suffix') || '';
+      let count = 0;
+      const speed = target / 80; // Animation speed proportional to the target number
+      
+      const updateCount = () => {
+        count += speed;
+        if (count < target) {
+          stat.innerText = Math.floor(count) + suffix;
+          requestAnimationFrame(updateCount);
+        } else {
+          stat.innerText = target + suffix;
+        }
+      };
+      
+      updateCount();
+    });
+  };
+
+  const statsSection = document.querySelector('.hero-stats-wrapper');
+  if (statsSection) {
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !statsAnimated) {
+          animateCounters();
+          statsAnimated = true;
+          statsObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    
+    statsObserver.observe(statsSection);
+  }
+
+
+  // --- Smart Part Search Section ---
+
+  function updateSearchFeedback() {
+    if (!searchInput) return;
+    
+    const query = searchInput.value.trim();
+    if (query.length > 0) {
+      // Show query feedback & pre-fill WhatsApp link
+      const textTemplate = searchFeedbackMessages[currentLang].typing;
+      searchFeedbackText.innerHTML = textTemplate.replace('{query}', `<strong style="color: var(--primary-red); font-size: 1.1em;">${query}</strong>`);
+      
+      const waMsg = encodeURIComponent(`Hi Paras Auto Parts, I am looking for: ${query}. Please let me know if it is available and what the pricing is.`);
+      searchWhatsAppBtn.href = `https://wa.me/919993150250?text=${waMsg}`;
+      searchWhatsAppBtn.style.display = 'inline-flex';
+      searchFeedbackCard.classList.add('highlighted');
+      
+      // Update WhatsApp button label dynamically
+      searchWhatsAppBtn.querySelector('span').textContent = searchFeedbackMessages[currentLang].btnText;
+    } else {
+      // Default placeholder text
+      searchFeedbackText.textContent = searchFeedbackMessages[currentLang].default;
+      searchWhatsAppBtn.style.display = 'none';
+      searchFeedbackCard.classList.remove('highlighted');
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', updateSearchFeedback);
+  }
+
 
   // --- Interactive Contact Form Handling ---
   const contactForm = document.getElementById('partsContactForm');
