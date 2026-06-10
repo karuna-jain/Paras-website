@@ -334,6 +334,287 @@ const init = () => {
       }, 5000);
     }
   }
+
+  // --- Interactive Bike Parts Finder Logic ---
+  const finderBrandSelect = document.getElementById('finderBrandSelect');
+  const finderModelSelect = document.getElementById('finderModelSelect');
+  const finderDiagramWrapper = document.getElementById('finderDiagramWrapper');
+  const motorcycleSvg = document.getElementById('motorcycleSvg');
+  const scooterSvg = document.getElementById('scooterSvg');
+
+  const finderModal = document.getElementById('finderModal');
+  const finderModalClose = document.getElementById('finderModalClose');
+  const modalPartName = document.getElementById('modalPartName');
+  const modalCompatibleVehicle = document.getElementById('modalCompatibleVehicle');
+  const modalProductCategory = document.getElementById('modalProductCategory');
+  const modalWhatsAppEnquiryBtn = document.getElementById('modalWhatsAppEnquiryBtn');
+
+  // Specs Database
+  const partsInventoryDb = {
+    "Front Tyre": {
+      category: { en: "Tyres & Tubes", hi: "टायर और ट्यूब" },
+      brandSpecs: {
+        "Splendor": "MRF Nylogrip Moto-D (2.75-18) Front Tyre",
+        "HF Deluxe": "MRF Nylogrip Plus (2.75-18) Front Tyre",
+        "Activa": "CEAT Milaze (90/90-10) Tubeless Front Tyre",
+        "Shine": "MRF Ezeeride (80/100-18) Tubeless Front Tyre",
+        "Pulsar": "MRF Zapper-FS (80/100-17) Tubeless Front Tyre",
+        "Apache": "TVS Eurogrip Remora (90/90-17) Tubeless Front Tyre",
+        "Jupiter": "CEAT Zoom D (90/90-12) Tubeless Front Tyre"
+      }
+    },
+    "Rear Tyre": {
+      category: { en: "Tyres & Tubes", hi: "टायर और ट्यूब" },
+      brandSpecs: {
+        "Splendor": "MRF Nylogrip Zapper (3.00-18) Rear Tyre",
+        "HF Deluxe": "CEAT Secura Zoom F (3.00-18) Rear Tyre",
+        "Activa": "CEAT Milaze (90/90-10) Tubeless Rear Tyre",
+        "Shine": "MRF Zapper (80/100-18) Tubeless Rear Tyre",
+        "Pulsar": "MRF Vyde (120/80-17) Tubeless Rear Tyre",
+        "Apache": "TVS Eurogrip Remora (110/80-17) Tubeless Rear Tyre",
+        "Jupiter": "CEAT Zoom D (90/90-12) Tubeless Rear Tyre"
+      }
+    },
+    "Tube": {
+      category: { en: "Tyres & Tubes", hi: "टायर और ट्यूब" },
+      brandSpecs: {
+        "Splendor": "MRF Heavy-Duty (3.00-18) Rubber Inner Tube",
+        "HF Deluxe": "CEAT Durable (3.00-18) Rubber Inner Tube",
+        "Activa": "CEAT Scooter Inner Tube (90/90-10)",
+        "Shine": "MRF Premium Inner Tube (80/100-18)",
+        "Pulsar": "MRF Sports Inner Tube (120/80-17)",
+        "Apache": "TVS Eurogrip Inner Tube (110/80-17)",
+        "Jupiter": "CEAT Scooter Inner Tube (90/90-12)"
+      }
+    },
+    "Chain Sprocket": {
+      category: { en: "Chain Sprocket Kits", hi: "चैन स्प्रोकेट किट" },
+      brandSpecs: {
+        "Splendor": "Rolon Genuine Steel Chain Sprocket Kit (44T-14T)",
+        "HF Deluxe": "Rolon Genuine Chain & Sprocket Kit (42T-14T)",
+        "Activa": "Honda Genuine CVT Drive Belt (Friction Belt)",
+        "Shine": "Rolon Hardened Chain Sprocket Assembly",
+        "Pulsar": "Bajaj Genuine Sports Chain Sprocket Kit",
+        "Apache": "TVS Genuine High-Tensile Chain Kit",
+        "Jupiter": "TVS Genuine CVT Drive Belt (Variator Belt)"
+      }
+    },
+    "Clutch": {
+      category: { en: "Clutch Components", hi: "क्लच पार्ट्स" },
+      brandSpecs: {
+        "Splendor": "Hero Genuine Clutch & Friction Plate Kit",
+        "HF Deluxe": "Hero Genuine Clutch Assembly Kit",
+        "Activa": "Honda Genuine Centrifugal Clutch Shoe Assembly",
+        "Shine": "Honda Genuine Heavy-Duty Clutch Plate Set",
+        "Pulsar": "Bajaj Genuine Multi-Plate Clutch Assembly",
+        "Apache": "TVS Apache Genuine Clutch Plate Set",
+        "Jupiter": "TVS Jupiter Genuine CVT Clutch Shoe"
+      }
+    },
+    "Brake Shoe": {
+      category: { en: "Brake Components", hi: "ब्रेक सिस्टम" },
+      brandSpecs: {
+        "Splendor": "Hero Genuine Rear Brake Shoe (130mm)",
+        "HF Deluxe": "Hero Genuine Rear Brake Shoe (130mm)",
+        "Activa": "Honda Genuine Rear Drum Brake Shoe",
+        "Shine": "Honda Genuine Rear Brake Shoe (130mm)",
+        "Pulsar": "Bajaj Genuine Rear Brake Shoe Assembly",
+        "Apache": "TVS Genuine Rear Brake Shoe (130mm)",
+        "Jupiter": "TVS Genuine Rear Drum Brake Shoe"
+      }
+    },
+    "Brake Pads": {
+      category: { en: "Brake Components", hi: "ब्रेक सिस्टम" },
+      brandSpecs: {
+        "Splendor": "ASK Premium Front Drum Brake Shoe Set",
+        "HF Deluxe": "ASK Premium Front Drum Brake Shoe Set",
+        "Activa": "KBX Front Disc Brake Pads / Drum Brake Shoe",
+        "Shine": "Honda Genuine Front Disc Brake Pads",
+        "Pulsar": "Bajaj Genuine KBX Front Disc Brake Pads",
+        "Apache": "TVS Apache RTR Front Disc Brake Pads",
+        "Jupiter": "TVS Jupiter Disc Edition Front Brake Pads"
+      }
+    },
+    "Headlight": {
+      category: { en: "Electrical Parts", hi: "इलेक्ट्रिकल पार्ट्स" },
+      brandSpecs: {
+        "Splendor": "Halonix 12V 35/35W Halogen Headlight Bulb",
+        "HF Deluxe": "Halonix 12V HS1 Headlight Bulb",
+        "Activa": "Philips 12V LED Headlight Upgrade Bulb",
+        "Shine": "Halonix 12V 35/35W Halogen Headlight Bulb",
+        "Pulsar": "Osram 12V 35/35W Blue-vision Headlight Bulb",
+        "Apache": "TVS Genuine High-Illumination H4 LED Bulb",
+        "Jupiter": "TVS Jupiter LED Headlight Module"
+      }
+    },
+    "Indicators": {
+      category: { en: "Electrical Parts", hi: "इलेक्ट्रिकल पार्ट्स" },
+      brandSpecs: {
+        "Splendor": "Hero Genuine Flexible Amber Turn Signal Indicator",
+        "HF Deluxe": "Hero Genuine Amber Turn Signal Indicator",
+        "Activa": "Honda Genuine Transparent Indicator Lens & Bulb",
+        "Shine": "Honda Genuine Flexible Indicator Assembly",
+        "Pulsar": "Bajaj Pulsar Genuine Flexible LED Indicator",
+        "Apache": "TVS Apache RTR Clear-Lens Turn Indicator",
+        "Jupiter": "TVS Jupiter Amber Front Indicator Bulb"
+      }
+    },
+    "Battery": {
+      category: { en: "Electrical Parts", hi: "इलेक्ट्रिकल पार्ट्स" },
+      brandSpecs: {
+        "Splendor": "Exide Xplore 12V 3Ah Maintenance-Free Battery",
+        "HF Deluxe": "Exide Xplore 12V 3Ah Maintenance-Free Battery",
+        "Activa": "Amaron Pro Rider 12V 3Ah VRLA Battery",
+        "Shine": "Exide Xplore 12V 4Ah Maintenance-Free Battery",
+        "Pulsar": "Amaron Pro Rider 12V 5Ah VRLA Battery",
+        "Apache": "Exide Xplore 12V 9Ah Sports Battery",
+        "Jupiter": "Amaron Pro Rider 12V 4Ah VRLA Battery"
+      }
+    },
+    "Air Filter": {
+      category: { en: "Oil Filters", hi: "ऑयल फिल्टर" },
+      brandSpecs: {
+        "Splendor": "Hero Genuine Foam Air Filter Element",
+        "HF Deluxe": "Hero Genuine Foam Air Filter Element",
+        "Activa": "Honda Genuine Viscous Paper Air Filter",
+        "Shine": "Honda Genuine Viscous Paper Air Filter",
+        "Pulsar": "Bajaj Genuine Foam Air Filter Element",
+        "Apache": "TVS Genuine Paper Air Filter Element",
+        "Jupiter": "TVS Jupiter Genuine Viscous Paper Filter"
+      }
+    },
+    "Oil Filter": {
+      category: { en: "Oil Filters", hi: "ऑयल फिल्टर" },
+      brandSpecs: {
+        "Splendor": "Hero Genuine Engine Centrifugal Oil Filter",
+        "HF Deluxe": "Hero Genuine Engine Oil Filter Screen",
+        "Activa": "Honda Genuine Engine Oil Strainer Screen",
+        "Shine": "Honda Genuine Engine Oil Filter Element",
+        "Pulsar": "Bajaj Genuine Engine Oil Filter Cartridge",
+        "Apache": "TVS Apache Genuine Paper Oil Filter",
+        "Jupiter": "TVS Jupiter Engine Oil Strainer Screen"
+      }
+    },
+    "Spark Plug": {
+      category: { en: "Electrical Parts", hi: "इलेक्ट्रिकल पार्ट्स" },
+      brandSpecs: {
+        "Splendor": "NGK UR4AC Copper Spark Plug",
+        "HF Deluxe": "NGK UR4AC Resistor Spark Plug",
+        "Activa": "NGK MR7C-9 Resistor Spark Plug",
+        "Shine": "NGK CPR7EA-9 Resistor Spark Plug",
+        "Pulsar": "NGK Spark Plug (Twin Spark Set - UR5AC)",
+        "Apache": "NGK CPR8EA-9 High-Performance Spark Plug",
+        "Jupiter": "NGK UR5AC Resistor Spark Plug"
+      }
+    },
+    "Engine Oil": {
+      category: { en: "Engine Oils & Lubricants", hi: "इंजन ऑयल और लुब्रिकेंट्स" },
+      brandSpecs: {
+        "Splendor": "Castrol Activ 4T 10W30 Engine Oil (900ml)",
+        "HF Deluxe": "Hero Genuine 4T 10W30 Engine Oil (900ml)",
+        "Activa": "Castrol Activ Scooter 10W30 Engine Oil (800ml)",
+        "Shine": "Honda Genuine 4T 10W30 Engine Oil (1L)",
+        "Pulsar": "Motul 3100 4T 20W50 Engine Oil (1.1L)",
+        "Apache": "Motul 7100 4T 10W30 Synthetic Oil (1L)",
+        "Jupiter": "Gulf Pride Scooter 10W30 Engine Oil (800ml)"
+      }
+    }
+  };
+
+  // Dropdown filtering logic
+  if (finderBrandSelect && finderModelSelect) {
+    finderBrandSelect.addEventListener('change', () => {
+      const selectedBrand = finderBrandSelect.value;
+      finderModelSelect.value = "";
+      
+      if (selectedBrand === "") {
+        finderModelSelect.disabled = true;
+        finderDiagramWrapper.style.display = "none";
+      } else {
+        finderModelSelect.disabled = false;
+        
+        // Show only models of selected brand
+        Array.from(finderModelSelect.options).forEach(opt => {
+          if (opt.value === "") {
+            opt.style.display = "block";
+          } else if (opt.classList.contains(`brand-${selectedBrand}`)) {
+            opt.style.display = "block";
+          } else {
+            opt.style.display = "none";
+          }
+        });
+      }
+    });
+  }
+
+  // Model Selection - SVG Toggle
+  if (finderModelSelect) {
+    finderModelSelect.addEventListener('change', () => {
+      const selectedModel = finderModelSelect.value;
+      
+      if (selectedModel === "") {
+        finderDiagramWrapper.style.display = "none";
+      } else {
+        finderDiagramWrapper.style.display = "block";
+        
+        // If scooter (Activa or Jupiter)
+        if (selectedModel === "Activa" || selectedModel === "Jupiter") {
+          scooterSvg.style.display = "block";
+          motorcycleSvg.style.display = "none";
+        } else {
+          scooterSvg.style.display = "none";
+          motorcycleSvg.style.display = "block";
+        }
+      }
+    });
+  }
+
+  // Hotspot clicks
+  document.querySelectorAll('.finder-hotspot').forEach(hotspot => {
+    hotspot.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      const partKey = hotspot.getAttribute('data-part');
+      const selectedModel = finderModelSelect.value;
+      const selectedBrand = finderBrandSelect.value;
+      
+      if (!partKey || !selectedModel || !selectedBrand) return;
+
+      const partData = partsInventoryDb[partKey];
+      if (!partData) return;
+
+      const partName = partData.brandSpecs[selectedModel] || `${selectedModel} Genuine ${partKey}`;
+      const partCategory = currentLang === 'hi' ? partData.category.hi : partData.category.en;
+      const compatibleVehicle = `${selectedBrand} ${selectedModel}`;
+
+      // Populate Modal
+      modalPartName.textContent = partName;
+      modalCompatibleVehicle.textContent = compatibleVehicle;
+      modalProductCategory.textContent = partCategory;
+
+      // WhatsApp Deep link
+      const waMessageText = `Hi Paras Auto Parts, I am looking for the "${partName}" compatible with my "${compatibleVehicle}". Please let me know if it is available and what the price is.`;
+      modalWhatsAppEnquiryBtn.href = `https://wa.me/919993150250?text=${encodeURIComponent(waMessageText)}`;
+
+      // Show Modal
+      finderModal.style.display = 'flex';
+    });
+  });
+
+  // Close Modal
+  if (finderModalClose) {
+    finderModalClose.addEventListener('click', () => {
+      finderModal.style.display = 'none';
+    });
+  }
+
+  if (finderModal) {
+    finderModal.addEventListener('click', (e) => {
+      if (e.target === finderModal) {
+        finderModal.style.display = 'none';
+      }
+    });
+  }
 };
 
 // Start script execution safely
