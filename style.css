@@ -2115,9 +2115,9 @@ body.js-enabled .reveal.active {
   fill: none;
   stroke: var(--primary-red);
   stroke-width: 1.5px;
-  opacity: 0.8;
+  opacity: 0;
   transform-origin: center;
-  animation: pulse-ring 2s infinite cubic-bezier(0.25, 0, 0, 1);
+  transition: opacity 0.3s ease;
 }
 
 .finder-hotspot:hover .hotspot-core {
@@ -2126,6 +2126,11 @@ body.js-enabled .reveal.active {
   stroke-width: 2px;
   transform: scale(1.35);
   transform-origin: center;
+}
+
+.finder-hotspot:hover .hotspot-pulse {
+  opacity: 0.8;
+  animation: pulse-ring 2s infinite cubic-bezier(0.25, 0, 0, 1);
 }
 
 .hotspot-text {
