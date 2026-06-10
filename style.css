@@ -546,6 +546,14 @@ button, input, select, textarea {
   letter-spacing: 1px;
 }
 
+.hero-tagline {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  margin-top: 10px;
+  letter-spacing: 0.5px;
+}
+
 .hero-subtitle {
   font-size: 20px;
   color: var(--text-muted-light);
@@ -619,6 +627,10 @@ button, input, select, textarea {
   }
   .hero-brand-highlight {
     font-size: 48px;
+  }
+  .hero-tagline {
+    font-size: 20px;
+    margin-top: 8px;
   }
   .hero-title {
     font-size: 38px;
