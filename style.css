@@ -2103,23 +2103,28 @@ body.js-enabled .reveal.active {
 }
 
 .hotspot-core {
-  fill: var(--primary-red);
-  stroke: var(--white);
-  stroke-width: 2px;
-  transition: transform 0.3s ease, fill 0.3s ease;
+  fill: var(--white);
+  stroke: var(--primary-red);
+  stroke-width: 2.5px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hotspot-pulse {
-  fill: var(--primary-red);
-  opacity: 0.4;
+  fill: none;
+  stroke: var(--primary-red);
+  stroke-width: 1.5px;
+  opacity: 0.8;
   transform-origin: center;
-  animation: pulse-ring 2s infinite ease-out;
+  animation: pulse-ring 2s infinite cubic-bezier(0.25, 0, 0, 1);
 }
 
 .finder-hotspot:hover .hotspot-core {
-  fill: var(--white);
-  stroke: var(--primary-red);
-  transform: scale(1.3);
+  fill: var(--primary-red);
+  stroke: var(--white);
+  stroke-width: 2px;
+  transform: scale(1.35);
   transform-origin: center;
 }
 
@@ -2144,11 +2149,11 @@ body.js-enabled .reveal.active {
 
 @keyframes pulse-ring {
   0% {
-    transform: scale(0.6);
-    opacity: 0.6;
+    transform: scale(0.7);
+    opacity: 0.95;
   }
   100% {
-    transform: scale(1.5);
+    transform: scale(2.2);
     opacity: 0;
   }
 }
