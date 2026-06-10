@@ -2061,6 +2061,17 @@ body.js-enabled .reveal.active {
   box-shadow: var(--shadow-lg);
   background-image: radial-gradient(rgba(201, 12, 19, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
+  
+  /* Smooth fade-in transition when display is toggled */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.finder-diagram-wrapper.active {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .diagram-instruction-label {

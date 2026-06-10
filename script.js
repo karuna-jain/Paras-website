@@ -8,6 +8,10 @@ const init = () => {
   const searchWhatsAppBtn = document.getElementById('searchWhatsAppBtn');
   const searchFeedbackCard = document.getElementById('searchFeedbackCard');
 
+  // Backup original model options for cross-browser selection filtering
+  const earlyModelSelect = document.getElementById('finderModelSelect');
+  const originalModelOptions = earlyModelSelect ? Array.from(earlyModelSelect.options) : [];
+
   // --- Translation / Localization Engine ---
   let currentLang = 'en';
   try {
@@ -50,6 +54,14 @@ const init = () => {
       const translation = el.getAttribute(`data-${lang}`);
       if (translation) {
         el.innerHTML = translation;
+      }
+    });
+
+    // Translate backed up in-memory original model options
+    originalModelOptions.forEach(opt => {
+      const translation = opt.getAttribute(`data-${lang}`);
+      if (translation) {
+        opt.innerHTML = translation;
       }
     });
 
@@ -525,24 +537,40 @@ const init = () => {
   if (finderBrandSelect && finderModelSelect) {
     finderBrandSelect.addEventListener('change', () => {
       const selectedBrand = finderBrandSelect.value;
-      finderModelSelect.value = "";
+      
+      // Clear options
+      finderModelSelect.innerHTML = '';
       
       if (selectedBrand === "") {
         finderModelSelect.disabled = true;
-        finderDiagramWrapper.style.display = "none";
+        
+        // Re-add placeholder option only
+        const placeholder = originalModelOptions.find(opt => opt.value === "");
+        if (placeholder) {
+          const clone = placeholder.cloneNode(true);
+          const translation = clone.getAttribute(`data-${currentLang}`);
+          if (translation) clone.innerHTML = translation;
+          finderModelSelect.appendChild(clone);
+        }
+        finderModelSelect.value = "";
+        
+        if (finderDiagramWrapper) {
+          finderDiagramWrapper.classList.remove('active');
+          finderDiagramWrapper.style.display = "none";
+        }
       } else {
         finderModelSelect.disabled = false;
         
-        // Show only models of selected brand
-        Array.from(finderModelSelect.options).forEach(opt => {
-          if (opt.value === "") {
-            opt.style.display = "block";
-          } else if (opt.classList.contains(`brand-${selectedBrand}`)) {
-            opt.style.display = "block";
-          } else {
-            opt.style.display = "none";
+        // Populate placeholder and filtered options
+        originalModelOptions.forEach(opt => {
+          if (opt.value === "" || opt.classList.contains(`brand-${selectedBrand}`)) {
+            const clone = opt.cloneNode(true);
+            const translation = clone.getAttribute(`data-${currentLang}`);
+            if (translation) clone.innerHTML = translation;
+            finderModelSelect.appendChild(clone);
           }
         });
+        finderModelSelect.value = "";
       }
     });
   }
@@ -553,17 +581,24 @@ const init = () => {
       const selectedModel = finderModelSelect.value;
       
       if (selectedModel === "") {
-        finderDiagramWrapper.style.display = "none";
+        if (finderDiagramWrapper) {
+          finderDiagramWrapper.classList.remove('active');
+          finderDiagramWrapper.style.display = "none";
+        }
       } else {
-        finderDiagramWrapper.style.display = "block";
+        if (finderDiagramWrapper) {
+          finderDiagramWrapper.style.display = "block";
+          finderDiagramWrapper.offsetHeight; // Force reflow
+          finderDiagramWrapper.classList.add('active');
+        }
         
         // If scooter (Activa or Jupiter)
         if (selectedModel === "Activa" || selectedModel === "Jupiter") {
-          scooterSvg.style.display = "block";
-          motorcycleSvg.style.display = "none";
+          if (scooterSvg) scooterSvg.style.display = "block";
+          if (motorcycleSvg) motorcycleSvg.style.display = "none";
         } else {
-          scooterSvg.style.display = "none";
-          motorcycleSvg.style.display = "block";
+          if (scooterSvg) scooterSvg.style.display = "none";
+          if (motorcycleSvg) motorcycleSvg.style.display = "block";
         }
       }
     });
